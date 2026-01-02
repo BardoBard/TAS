@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mod_Tas", "Mod_Tas\Mod_Tas.csproj", "{753C9F3C-F927-5463-6915-3C1D58570D01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lithium.Core.Thor.Core", "Lithium.Core.Thor.Core\Lithium.Core.Thor.Core.csproj", "{7FB83CC1-0CF1-4B12-8F06-24EE12FEBC67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeleteMe", "DeleteMe\DeleteMe.csproj", "{97086C37-5F0B-476F-9012-187F146377A3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{753C9F3C-F927-5463-6915-3C1D58570D01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{753C9F3C-F927-5463-6915-3C1D58570D01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{753C9F3C-F927-5463-6915-3C1D58570D01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{753C9F3C-F927-5463-6915-3C1D58570D01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FB83CC1-0CF1-4B12-8F06-24EE12FEBC67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FB83CC1-0CF1-4B12-8F06-24EE12FEBC67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FB83CC1-0CF1-4B12-8F06-24EE12FEBC67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FB83CC1-0CF1-4B12-8F06-24EE12FEBC67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97086C37-5F0B-476F-9012-187F146377A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97086C37-5F0B-476F-9012-187F146377A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97086C37-5F0B-476F-9012-187F146377A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97086C37-5F0B-476F-9012-187F146377A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

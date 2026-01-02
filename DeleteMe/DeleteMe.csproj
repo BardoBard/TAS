@@ -1,0 +1,555 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <Target Name="CheckUnityEditor" BeforeTargets="ResolveReferences">
+        <!-- Make sure the UNITY_EDITOR_PATH environment variable is set to the path of the 6000.0.36f1/Editor folder -->
+        <Error Condition="'$(UNITY_EDITOR_PATH)' == ''" Text="The UNITY_EDITOR_PATH environment variable is not set.&#xD;&#xA;Please set it to the path of the 6000.0.36f1/Editor folder, this is usually in x:/Program Files/Unity 6000.0.36f1/Editor&#xD;&#xA;A restart is probably required" />
+    </Target>
+    <Target Name="CheckSteamappsPath" BeforeTargets="ResolveReferences">
+        <!-- Make sure the STEAMAPPS_PATH environment variable is set to the path of the steamapps folder -->
+        <Error Condition="'$(STEAMAPPS_PATH)' == ''" Text="The STEAMAPPS_PATH environment variable is not set.&#xD;&#xA;Please set it to the path of your steamapps folder, this is usually in x:/Program Files (x86)/Steam/steamapps&#xD;&#xA;A restart is probably required" />
+    </Target>
+    <Target Name="CheckHasTasMod" BeforeTargets="ResolveReferences">
+        <!-- Make sure the $(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\ folder exists -->
+        <Error Condition="!Exists('$(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\')" Text="The TAS Mod folder could not be found.&#xD;&#xA;Please make sure you have subscribed to the TAS Mod on the Steam Workshop and that it is fully downloaded.&#xD;&#xA;See: https://steamcommunity.com/sharedfiles/filedetails/?id=3634683501.&#xD;&#xA;The expected folder is: $(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\" />
+    </Target>
+    <Target Name="CheckHasUnderMine2" BeforeTargets="ResolveReferences">
+        <!-- Make sure the $(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\ folder exists -->
+        <Error Condition="!Exists('$(STEAMAPPS_PATH)\common\UnderMine2\')" Text="The UnderMine 2 game folder could not be found.&#xD;&#xA;Please make sure UnderMine 2 is installed.&#xD;&#xA;The expected folder is: $(STEAMAPPS_PATH)\common\UnderMine2\" />
+    </Target>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{97086C37-5F0B-476F-9012-187F146377A3}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Mod_1cc0850504174e90b99c12c59de2b40f</RootNamespace>
+        <AssemblyName>Mod_0DeleteMe</AssemblyName>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+        <Reference Include="UnityEngine">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="netstandard">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\ref\2.1.0\netstandard.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Microsoft.Win32.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\Microsoft.Win32.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.AppContext">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.AppContext.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Buffers">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Buffers.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Collections.Concurrent">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Collections.Concurrent.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Collections">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Collections.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Collections.NonGeneric">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Collections.NonGeneric.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Collections.Specialized">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Collections.Specialized.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ComponentModel">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.ComponentModel.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ComponentModel.EventBasedAsync">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.ComponentModel.EventBasedAsync.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ComponentModel.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.ComponentModel.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ComponentModel.TypeConverter">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.ComponentModel.TypeConverter.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Console">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Console.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Data.Common">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Data.Common.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.Contracts">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.Contracts.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.Debug">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.Debug.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.FileVersionInfo">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.FileVersionInfo.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.Process">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.Process.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.StackTrace">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.StackTrace.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.TextWriterTraceListener">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.TextWriterTraceListener.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.Tools">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.Tools.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.TraceSource">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.TraceSource.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Diagnostics.Tracing">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Diagnostics.Tracing.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Drawing.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Drawing.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Dynamic.Runtime">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Dynamic.Runtime.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Globalization.Calendars">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Globalization.Calendars.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Globalization">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Globalization.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Globalization.Extensions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Globalization.Extensions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.Compression">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.Compression.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.Compression.ZipFile">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.Compression.ZipFile.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.FileSystem">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.FileSystem.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.FileSystem.DriveInfo">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.FileSystem.DriveInfo.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.FileSystem.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.FileSystem.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.FileSystem.Watcher">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.FileSystem.Watcher.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.IsolatedStorage">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.IsolatedStorage.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.MemoryMappedFiles">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.MemoryMappedFiles.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.Pipes">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.Pipes.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.UnmanagedMemoryStream">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.IO.UnmanagedMemoryStream.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Linq">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Linq.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Linq.Expressions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Linq.Expressions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Linq.Parallel">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Linq.Parallel.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Linq.Queryable">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Linq.Queryable.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Memory">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Memory.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Http">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.Http.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.NameResolution">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.NameResolution.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.NetworkInformation">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.NetworkInformation.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Ping">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.Ping.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Requests">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.Requests.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Security">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.Security.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Sockets">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.Sockets.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.WebHeaderCollection">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.WebHeaderCollection.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.WebSockets.Client">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.WebSockets.Client.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.WebSockets">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Net.WebSockets.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Numerics.Vectors">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Numerics.Vectors.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ObjectModel">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.ObjectModel.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection.DispatchProxy">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.DispatchProxy.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection.Emit">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.Emit.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection.Emit.ILGeneration">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.Emit.ILGeneration.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection.Emit.Lightweight">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.Emit.Lightweight.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection.Extensions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.Extensions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Reflection.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Reflection.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Resources.Reader">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Resources.Reader.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Resources.ResourceManager">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Resources.ResourceManager.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Resources.Writer">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Resources.Writer.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.CompilerServices.VisualC">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.CompilerServices.VisualC.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Extensions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Extensions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Handles">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Handles.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.InteropServices">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.InteropServices.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Numerics">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Numerics.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization.Formatters">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Serialization.Formatters.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization.Json">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Serialization.Json.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Serialization.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization.Xml">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Runtime.Serialization.Xml.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Claims">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Claims.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Algorithms">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Cryptography.Algorithms.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Csp">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Cryptography.Csp.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Encoding">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Cryptography.Encoding.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.Primitives">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Cryptography.Primitives.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Cryptography.X509Certificates">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Cryptography.X509Certificates.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.Principal">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.Principal.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Security.SecureString">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Security.SecureString.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Text.Encoding">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Text.Encoding.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Text.Encoding.Extensions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Text.Encoding.Extensions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Text.RegularExpressions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Text.RegularExpressions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.Overlapped">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.Overlapped.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.Tasks">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.Tasks.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.Tasks.Extensions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.Tasks.Extensions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.Tasks.Parallel">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.Tasks.Parallel.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.Thread">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.Thread.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.ThreadPool">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.ThreadPool.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Threading.Timer">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Threading.Timer.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ValueTuple">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.ValueTuple.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.ReaderWriter">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Xml.ReaderWriter.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.XDocument">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Xml.XDocument.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.XmlDocument">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Xml.XmlDocument.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.XmlSerializer">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Xml.XmlSerializer.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.XPath">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Xml.XPath.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.XPath.XDocument">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netstandard\System.Xml.XPath.XDocument.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.InteropServices.WindowsRuntime">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\Extensions\2.0.0\System.Runtime.InteropServices.WindowsRuntime.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="mscorlib">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\mscorlib.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ComponentModel.Composition">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.ComponentModel.Composition.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Core">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Core.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Data">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Data.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Drawing">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Drawing.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.IO.Compression.FileSystem">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.IO.Compression.FileSystem.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Net.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Numerics">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Numerics.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Runtime.Serialization">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Runtime.Serialization.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.ServiceModel.Web">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.ServiceModel.Web.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Transactions">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Transactions.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Web">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Web.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Windows">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Windows.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.Linq">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.Linq.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Xml.Serialization">
+            <HintPath>$(UNITY_EDITOR_PATH)\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.Serialization.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Entry.cs" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>

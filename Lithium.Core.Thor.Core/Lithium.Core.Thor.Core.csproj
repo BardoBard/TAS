@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{7FB83CC1-0CF1-4B12-8F06-24EE12FEBC67}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Lithium.Core.Thor.Core</RootNamespace>
+        <AssemblyName>Lithium.Core.Thor.Core</AssemblyName>
+        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <Target Name="CheckUnderMine2Path" BeforeTargets="ResolveReferences">
+        <!-- Make sure the UNDERMINE2_PATH environment variable is set to the path of the UnderMine 2 folder -->
+        <Error Condition="'$(UNDERMINE2_PATH)' == ''" Text="The UNDERMINE2_PATH environment variable is not set.&#xD;&#xA;           Please set it to the path of the UnderMine 2 folder, this is usually in Steam/Steamapps/common/UnderMine2.&#xD;&#xA;           A restart is probably required" />
+    </Target>
+    <Target Name="CheckSteamappsPath" BeforeTargets="ResolveReferences">
+        <!-- Make sure the STEAMAPPS_PATH environment variable is set to the path of the steamapps folder -->
+        <Error Condition="'$(STEAMAPPS_PATH)' == ''" Text="The STEAMAPPS_PATH environment variable is not set.&#xD;&#xA;Please set it to the path of your steamapps folder, this is usually in x:/Program Files (x86)/Steam/steamapps&#xD;&#xA;A restart is probably required" />
+    </Target>
+    <Target Name="CheckHasUnderMine2" BeforeTargets="ResolveReferences">
+        <!-- Make sure the $(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\ folder exists -->
+        <Error Condition="!Exists('$(STEAMAPPS_PATH)\common\UnderMine2\')" Text="The UnderMine 2 game folder could not be found.&#xD;&#xA;Please make sure UnderMine 2 is installed.&#xD;&#xA;The expected folder is: $(STEAMAPPS_PATH)\common\UnderMine2\" />
+    </Target>
+    <ItemGroup>
+        <Reference Include="0Harmony, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="Lithium.Core">
+          <HintPath>$(UNDERMINE2_PATH)ModToolkit\UnityPackage\Plugins\Runtime\Lithium.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+          <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+        <Reference Include="UnityEngine.UIModule">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.UI.dll</HintPath>
+        </Reference> 
+        <Reference Include="UnderMine">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\Undermine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="Thor.Core">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\Lithium.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.TextMeshPro">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="ITasServices\ITasLogService.cs" />
+        <Compile Include="ITasServices\ITasReflectionService.cs" />
+        <Compile Include="ITasServices\ITasPopupService.cs" />
+        <Compile Include="ITasServices\ITasService.cs" />
+        <Compile Include="TAS.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="TasService\TasLogService.cs" />
+        <Compile Include="TasService\TasReflectionService.cs" />
+        <Compile Include="TasService\TasPopupService.cs" />
+        <Compile Include="TasService\ServicesTas.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="packages.config" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <PropertyGroup>
+        <PreBuildEvent>for /f "tokens=2" %25%25a in ('tasklist /fi "imagename eq UnderMine2.exe" ^| findstr /i UnderMine2') do taskkill /f /pid %25%25a</PreBuildEvent>
+    </PropertyGroup>
+
+</Project>
