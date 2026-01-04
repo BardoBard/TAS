@@ -56,6 +56,13 @@ namespace Lithium.Core.Thor.Core
         /// <returns> True if the field values were copied successfully, false otherwise. </returns>
         bool CopyFieldValues(object source, string fieldName, object destination, string destinationFieldName);
 
+        /// <summary>
+        /// Performs a deep copy of an asset/prefab reference.
+        /// </summary>
+        /// <param name="source"> The source asset/prefab reference. </param>
+        /// <param name="destination"> The destination asset/prefab reference. </param>
+        /// <typeparam name="T"> The type of the asset/prefab reference. </typeparam>
+        /// <returns> True if the deep copy was successful, false otherwise. </returns>
         bool DeepCopyAssetReference<T>(T source, out T destination) where T : IAssetReference;
     }
 }

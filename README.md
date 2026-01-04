@@ -7,11 +7,13 @@
                    
 ```
 
+[Source code](https://github.com/BardoBard/TAS) for the UnderMine2 Tool-Assisted Speedrun (TAS) mod.
+
 # Usage
 
 Currently only available on windows.
 
-1. [Subscribe](https://steamcommunity.com/sharedfiles/filedetails/?id=3634683501) to the TAS mod in the workshop
+1. [Subscribe to the TAS mod in the workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3634683501)
 2. Locate the TAS download directory, usually located in: `x:\Program Files (x86)\Steam\steamapps\workshop\content\1869780\3634683501`.
 3. Remove the `Mod_0DeleteMe.txt` file from the TAS download directory.
 4. Move the `Lithium.Core.Thor.Core.dll` to the UnderMine2 Managed directory, usually located in: `x:\Program Files (x86)\Steam\steamapps\common\Undermine2\UnderMine2_Data\Managed`.
@@ -30,3 +32,4 @@ Feel free to fork the repository and submit pull requests for any improvements o
 - Make sure to add the environment variables:
     - `UNITY_EDITOR_PATH` pointing to your Unity Editor installation (usually in `x:/Program Files/Unity 6000.0.36f1/Editor`).
     - `STEAMAPPS_PATH` pointing to your Steam `steamapps` directory (usually in `x:/Program Files (x86)/Steam/steamapps`).
+- [Subscribe to the TAS mod on Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3634683501) before building to ensure the required files are available. 

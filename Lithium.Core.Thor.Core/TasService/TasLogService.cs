@@ -9,6 +9,9 @@ using Debug = UnityEngine.Debug;
 
 namespace Lithium.Core.Thor.Core
 {
+    /// <summary>
+    /// For now this is only used for log but can be extended for other purposes later by adding dynamic Open/Close methods.
+    /// </summary>
     public class TasLogService : ITasLogService, ITasService
     {
         private bool m_isLogging = true;
@@ -22,10 +25,6 @@ namespace Lithium.Core.Thor.Core
         public static string TasDirectory => "Tas";
         public float LoadProgress => 1f;
 
-        public IEnumerator InitializeAsync()
-        {
-            yield return null;
-        }
         public bool Initialize()
         {
             OpenLogFile(Path.Combine(Path.Combine(Application.persistentDataPath, Services.Platform.LoggedInUserID), Path.Combine(TasDirectory, "TasLog.txt")));
@@ -34,16 +33,12 @@ namespace Lithium.Core.Thor.Core
             return true;
         }
 
-        public void CollectDebugState(Dictionary<string, object> debugStateProperties)
-        {
-        }
-
         public void Shutdown()
         {
             m_logFileWriter?.Close();
         }
         
-        public bool OpenLogFile(string filePath)
+        private bool OpenLogFile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
                 return false;
@@ -64,7 +59,7 @@ namespace Lithium.Core.Thor.Core
             return true;
         }
 
-        public void CloseLogFile()
+        private void CloseLogFile()
         {
             m_logFileWriter?.Close();
             m_logFileWriter = null;
@@ -152,6 +147,15 @@ namespace Lithium.Core.Thor.Core
             File.WriteAllText(PathToLogFile, string.Empty);
             m_logFileWriter = new StreamWriter(PathToLogFile, append: true);
 
+        }
+        
+        // IService
+        public IEnumerator InitializeAsync()
+        {
+            yield return null;
+        }
+        public void CollectDebugState(Dictionary<string, object> debugStateProperties)
+        {
         }
     }
 }

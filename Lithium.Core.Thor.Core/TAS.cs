@@ -10,7 +10,6 @@ namespace Lithium.Core.Thor.Core
         public static AssetReference<PopupData> TasPopupData;
 
         private static bool m_initialized = false;
-        private static bool m_opened = false;
 
         public static void AwakeTas()
         {
@@ -49,18 +48,12 @@ namespace Lithium.Core.Thor.Core
 
         public static void UpdateTas()
         {
+            if (!m_initialized)
+                return;
+            
             if (Services.Input.IsKeyDown(KeyCode.F1))
             {
-
-                if (m_opened)
-                {
-                    m_opened = false;
-                    ServicesTas.Popup.Hide();
-                    return;
-                }
-
                 ServicesTas.Popup.Show();
-                m_opened = true;
             }
         }
 

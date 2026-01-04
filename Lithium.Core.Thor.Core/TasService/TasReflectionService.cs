@@ -17,19 +17,6 @@ namespace Lithium.Core.Thor.Core
         {
             return true;
         }
-        
-        public IEnumerator InitializeAsync()
-        {
-            yield return null;
-        }
-
-        public void CollectDebugState(Dictionary<string, object> debugStateProperties)
-        {
-        }
-
-        public void Shutdown()
-        {
-        }
 
         public string Name => "ReflectionService";
         public float LoadProgress => 1f;
@@ -254,6 +241,20 @@ namespace Lithium.Core.Thor.Core
 
                 return strWriter.ToString();
             }
+        }
+        
+        // IService
+        public IEnumerator InitializeAsync()
+        {
+            yield return null;
+        }
+
+        public void CollectDebugState(Dictionary<string, object> debugStateProperties)
+        {
+        }
+
+        public void Shutdown()
+        {
         }
     }
 }

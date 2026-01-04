@@ -23,8 +23,6 @@ namespace Lithium.Core.Thor.Core
 
         private PopupData m_consolePopupData;
         private ConsolePopup m_consolePopup;
-        
-        
 
         [HarmonyPatch(typeof(ConsolePopup), "MoneyPlease")]
         public class MoneyPleaseWatcher
@@ -73,15 +71,7 @@ namespace Lithium.Core.Thor.Core
         {
             return m_consolePopupData != null && m_consolePopup != null;
         }
-        
-        public void Hide()
-        {
-            if (Services.Players.PrimaryPlayer == null || !IsValid())
-                return;
 
-            Services.Pop.HidePopups<ConsolePopup>(true);
-        }
-        
         public void Show()
         {
             if (Services.Players.PrimaryPlayer == null || !IsValid())

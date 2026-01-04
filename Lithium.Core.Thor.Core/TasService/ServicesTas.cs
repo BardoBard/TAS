@@ -12,20 +12,23 @@ namespace Lithium.Core.Thor.Core
         public static ITasReflectionService TasReflection => GetTasService<ITasReflectionService>();
         public static ITasPopupService Popup => GetTasService<ITasPopupService>();
         
-        public static bool HasTasService<T>() where T : ITasService
-        {
-            return sServices.ContainsKey(typeof(T));
-        }
-        
+        /// <summary>
+        /// Checks if the service of the specified type exists.
+        /// </summary>
+        /// <typeparam name="T"> The type of the service. </typeparam>
+        /// <returns> True if the service exists, false otherwise. </returns>
+        public static bool HasTasService<T>() where T : ITasService => sServices.ContainsKey(typeof(T));
+
+        /// <summary>
+        /// Gets the service of the specified type.
+        /// </summary>
+        /// <typeparam name="T"> The type of the service. </typeparam>
+        /// <returns> The service of the specified type. </returns>
         public static T GetService<T>() where T : IService
         {
-            // First check in Tas services
             if (sServices.ContainsKey(typeof(T)))
-            {
                 return (T)sServices[typeof(T)];
-            }
-            
-            // Then check in Thor services
+
             if (HasTasService<ITasReflectionService>())
             {
                 ITasReflectionService tasReflectionService = GetTasService<ITasReflectionService>();
@@ -35,7 +38,7 @@ namespace Lithium.Core.Thor.Core
                 return getServiceFunc();
             }
 
-            return default; // Not found
+            return default;
         }
         
         /// <summary>
