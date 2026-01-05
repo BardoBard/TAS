@@ -24,7 +24,6 @@ Feel free to fork the repository and submit pull requests for any improvements o
 
 ### Pre-requisites
 - Unity 6000.0.36f1
-- dotnet
 - xcopy
 
 ### Notes

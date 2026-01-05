@@ -9,5 +9,10 @@ namespace Lithium.Core.Thor.Core
         /// </summary>
         /// <returns> True if initialization was successful, false otherwise. </returns>
         bool Initialize();
+
+        /// <summary>
+        /// Update for the service, called every frame.
+        /// </summary>
+        void Update();
     }
 }

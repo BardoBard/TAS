@@ -1,128 +1,536 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Thor;
 using Thor.Core;
 using TMPro;
 using UnityEngine;
-using HarmonyLib;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Lithium.Core.Thor.Core
 {
-    public class TasPopupService : ITasPopupService, ITasService
+    public class TasPopupService : TasService, ITasPopupService
     {
         public string Name => "TasPopupService";
         public float LoadProgress => 1f;
+        private bool m_isInitialized = false;
+        private bool m_isShowing = false;
 
-        private UIButton m_pauseButton; // moneyplease
-        private UIButton m_seedButton; // hpimmune
+        private Dictionary<GameObject, List<Component>> m_panelElements = new Dictionary<GameObject, List<Component>>();
 
-        private TMP_InputField m_seedInput; // seed input
-
-        private PopupData m_consolePopupData;
-        private ConsolePopup m_consolePopup;
-
-        [HarmonyPatch(typeof(ConsolePopup), "MoneyPlease")]
-        public class MoneyPleaseWatcher
+        /// <summary>
+        /// For tracking panel size changes, and updating accordingly.
+        /// </summary>
+        private Vector2 m_lastPanelSize = Vector2.zero;
+        public GlobalLayoutSettings GlobalElementSettings {get; private set;} = new GlobalLayoutSettings
         {
-            static void Prefix(BaseEventData eventData)
-            {
-                ServicesTas.Log.Log("[TasPopupService]: MoneyPlease button pressed");
-            }
+            Padding = new Vector2(10, 10),
+            ElementSize = new Vector2(150, 40),
+            ElementBackgroundColor = Color.white,
+            ElementTextColor = Color.black,
+            MaxElementsPerRow = 99,
+            FontSize = 24
+        };
+
+        private void AddTitleBar(GameObject panelObj, string panelName, PanelSettings settings)
+        {
+            GameObject titleBarObj = new GameObject("TitleBar", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+            titleBarObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform titleBarRect = titleBarObj.GetComponent<RectTransform>();
+            titleBarRect.anchorMin = new Vector2(0, 1);
+            titleBarRect.anchorMax = new Vector2(1, 1);
+            titleBarRect.pivot = new Vector2(0.5f, 0);
+            titleBarRect.anchoredPosition = new Vector2(0, 0);
+            titleBarRect.sizeDelta = new Vector2(0, settings.TitleHeight);
+
+            var barImage = titleBarObj.GetComponent<Image>();
+            barImage.color = settings.TitleBarColor;
+
+            GameObject titleTextObj = new GameObject("Title", typeof(RectTransform));
+            titleTextObj.transform.SetParent(titleBarObj.transform, false);
+
+            RectTransform titleTextRect = titleTextObj.GetComponent<RectTransform>();
+            titleTextRect.anchorMin = Vector2.zero;
+            titleTextRect.anchorMax = Vector2.one;
+            titleTextRect.offsetMin = Vector2.zero;
+            titleTextRect.offsetMax = Vector2.zero;
+
+            var titleText = titleTextObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = panelName;
+            titleText.fontSize = GlobalElementSettings.FontSize + 4;
+            titleText.color = settings.TitleTextColor;
+            titleText.alignment = TMPro.TextAlignmentOptions.Center;
         }
+
+        private bool CreateCanvas(string canvasName, PanelSettings settings, out GameObject panelObj)
+        {
+            panelObj = null;
+            Canvas mainCanvas = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None)
+                .FirstOrDefault(c => c.gameObject.name == "UI Canvas");
+
+            if (mainCanvas == null)
+            {
+                TasServices.Log.Log($"[{Name}]: Could not find UI Canvas");
+                return false;
+            }
+
+            panelObj = new GameObject(canvasName, typeof(RectTransform), typeof(CanvasGroup));
+            if (panelObj == null)
+                return false;
+
+            panelObj.transform.SetParent(mainCanvas.transform, false);
+
+            // Draggable Panel
+            panelObj.AddComponent<DraggablePanel>();
+            var draggablePanel = panelObj.GetComponent<DraggablePanel>();
+            draggablePanel.Init(settings);
+
+            // Resize Handle
+            GameObject resizeHandleObj =
+                new GameObject("ResizeHandle", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+            resizeHandleObj.transform.SetParent(panelObj.transform, false);
+            RectTransform resizeHandleRect = resizeHandleObj.GetComponent<RectTransform>();
+            resizeHandleRect.anchorMin = new Vector2(1, 0);
+            resizeHandleRect.anchorMax = new Vector2(1, 0);
+            resizeHandleRect.pivot = new Vector2(1, 0);
+            resizeHandleRect.anchoredPosition = new Vector2(-10, 10);
+            resizeHandleRect.sizeDelta = new Vector2(20, 20);
+            var resizeHandleImage = resizeHandleObj.GetComponent<Image>();
+            resizeHandleImage.color = Color.gray;
+            var resizeHandle = resizeHandleObj.AddComponent<DraggableResizeHandle>();
+            resizeHandle.Init(panelObj.GetComponent<RectTransform>(), settings);
+            
+            // Title Bar
+            AddTitleBar(panelObj, canvasName, settings);
+            
+            // Panel Background
+            var image = panelObj.AddComponent<Image>();
+            image.color = settings.BackgroundColor;
+
+            RectTransform tasPanelRect = panelObj.GetComponent<RectTransform>();
+            if (tasPanelRect == null)
+                return false;
+
+            tasPanelRect.anchorMin = new Vector2(0, 1);
+            tasPanelRect.anchorMax = new Vector2(0, 1);
+            tasPanelRect.pivot = new Vector2(0, 1);
+            tasPanelRect.anchoredPosition = settings.StartingPosition;
+            tasPanelRect.sizeDelta = new Vector2(settings.StartingSize.x, settings.StartingSize.y);
+
+            // Offset due to title bar
+            tasPanelRect.anchoredPosition -= new Vector2(0, settings.TitleHeight);
+            tasPanelRect.sizeDelta += new Vector2(0, settings.TitleHeight);
+
+            panelObj.SetActive(false);
+
+            m_panelElements.Add(panelObj, new List<Component>());
+            return true;
+        }
+
+        private void UpdateElementSizes(GameObject panelObj, RectTransform elementRect, int index)
+        {
+            int elementsPerRow = Mathf.Min(GlobalElementSettings.MaxElementsPerRow,
+                (int)(panelObj.GetComponent<RectTransform>().rect.width / (int)(GlobalElementSettings.ElementSize.x + GlobalElementSettings.Padding.x)));
+            int currentElementCount = index;
+            float mNextElementX = GlobalElementSettings.Padding.x + (currentElementCount % elementsPerRow) * (GlobalElementSettings.ElementSize.x + GlobalElementSettings.Padding.x);
+            float mNextElementY = -GlobalElementSettings.Padding.y - (int)(currentElementCount / elementsPerRow) * (GlobalElementSettings.ElementSize.y + GlobalElementSettings.Padding.y);
+            elementRect.sizeDelta = GlobalElementSettings.ElementSize;
+            
+            elementRect.anchorMin = new Vector2(0, 1);
+            elementRect.anchorMax = new Vector2(0, 1);
+            elementRect.pivot = new Vector2(0, 1);
+            elementRect.anchoredPosition = new Vector2(mNextElementX, mNextElementY);
+        }
+
+        private bool AddDropdown(GameObject panelObj, DropdownSettings settings)
+        {
+            if (panelObj == null)
+                return false;
+
+            GameObject dropdownObj = new GameObject(settings.Name, typeof(RectTransform),
+                typeof(CanvasGroup), typeof(Image));
+            dropdownObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform dropdownRect = dropdownObj.GetComponent<RectTransform>();
+            if (dropdownRect == null)
+                return false;
+            UpdateElementSizes(panelObj, dropdownRect, m_panelElements[panelObj].Count);
+
+            var dropdown = dropdownObj.AddComponent<TMP_Dropdown>();
+            var image = dropdownObj.GetComponent<Image>();
+            image.color = GlobalElementSettings.ElementBackgroundColor;
+
+            // Label
+            GameObject labelObj = new GameObject("Label", typeof(RectTransform));
+            labelObj.transform.SetParent(dropdownObj.transform, false);
+            RectTransform labelRect = labelObj.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            var labelText = labelObj.AddComponent<TextMeshProUGUI>();
+            labelText.text = settings.Options.Count > 0 ? settings.Options[0] : "";
+            labelText.fontSize = GlobalElementSettings.FontSize;
+            labelText.color = GlobalElementSettings.ElementTextColor;
+            labelText.alignment = TMPro.TextAlignmentOptions.Center;
+            dropdown.captionText = labelText;
+
+            // Template
+            GameObject templateObj = new GameObject("Template", typeof(RectTransform), typeof(CanvasGroup),
+                typeof(Image), typeof(ScrollRect));
+            templateObj.transform.SetParent(dropdownObj.transform, false);
+            templateObj.SetActive(false);
+            RectTransform templateRect = templateObj.GetComponent<RectTransform>();
+            templateRect.anchorMin = new Vector2(0, 0);
+            templateRect.anchorMax = new Vector2(1, 0);
+            templateRect.pivot = new Vector2(0.5f, 1);
+
+            int visibleItems = Mathf.Min(settings.MaxVisibleOptions, settings.Options.Count);
+            templateRect.sizeDelta =
+                new Vector2(0, GlobalElementSettings.ElementSize.y * visibleItems);
+            var templateImage = templateObj.GetComponent<Image>();
+            templateImage.color = new Color(0.95f, 0.95f, 0.95f, 1f);
+
+            // Viewport
+            GameObject viewportObj = new GameObject("Viewport", typeof(RectTransform), typeof(Mask), typeof(Image));
+            viewportObj.transform.SetParent(templateObj.transform, false);
+            RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
+            viewportRect.anchorMin = Vector2.zero;
+            viewportRect.anchorMax = Vector2.one;
+            viewportRect.offsetMin = Vector2.zero;
+            viewportRect.offsetMax = Vector2.zero;
+            var viewportImage = viewportObj.GetComponent<Image>();
+            viewportImage.color = new Color(1, 1, 1, 0.1f);
+            viewportObj.GetComponent<Mask>().showMaskGraphic = false;
+
+            // Content (Item Container)
+            GameObject contentObj = new GameObject("Content", typeof(RectTransform));
+            contentObj.transform.SetParent(viewportObj.transform, false);
+            RectTransform contentRect = contentObj.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0, 1);
+            contentRect.anchorMax = new Vector2(1, 1);
+            contentRect.pivot = new Vector2(0.5f, 1);
+            contentRect.anchoredPosition = Vector2.zero;
+
+            // Scrollbar
+            GameObject scrollbarObj = new GameObject("Scrollbar", typeof(RectTransform), typeof(CanvasGroup),
+                typeof(Image), typeof(Scrollbar));
+            scrollbarObj.transform.SetParent(templateObj.transform, false);
+            RectTransform scrollbarRect = scrollbarObj.GetComponent<RectTransform>();
+            scrollbarRect.anchorMin = new Vector2(1, 0);
+            scrollbarRect.anchorMax = new Vector2(1, 1);
+            scrollbarRect.pivot = new Vector2(1, 1);
+            scrollbarRect.sizeDelta = new Vector2(20, 0);
+            scrollbarRect.anchoredPosition = Vector2.zero;
+            var scrollbarImage = scrollbarObj.GetComponent<Image>();
+            scrollbarImage.color = new Color(0.8f, 0.8f, 0.8f, 1f);
+
+            // Scrollbar Handle
+            GameObject handleObj = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+            handleObj.transform.SetParent(scrollbarObj.transform, false);
+            RectTransform handleRect = handleObj.GetComponent<RectTransform>();
+            handleRect.anchorMin = new Vector2(0, 0);
+            handleRect.anchorMax = new Vector2(1, 1);
+            handleRect.offsetMin = Vector2.zero;
+            handleRect.offsetMax = Vector2.zero;
+            var handleImage = handleObj.GetComponent<Image>();
+            handleImage.color = new Color(0.6f, 0.6f, 0.6f, 1f);
+            var scrollbar = scrollbarObj.GetComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.handleRect = handleRect;
+            var scrollRect = templateObj.GetComponent<ScrollRect>();
+            scrollRect.content = contentRect;
+            scrollRect.viewport = viewportRect;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 20f;
+            scrollRect.verticalScrollbar = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+
+            // Item (Option)
+            GameObject itemObj = new GameObject("Item", typeof(RectTransform), typeof(UnityEngine.UI.Toggle),
+                typeof(Image));
+            itemObj.transform.SetParent(contentObj.transform, false);
+            RectTransform itemRect = itemObj.GetComponent<RectTransform>();
+            itemRect.anchorMin = new Vector2(0, 1);
+            itemRect.anchorMax = new Vector2(1, 1);
+            itemRect.pivot = new Vector2(0.5f, 1);
+            itemRect.sizeDelta = new Vector2(0, GlobalElementSettings.ElementSize.y);
+            var itemImage = itemObj.GetComponent<Image>();
+            itemImage.color = Color.white;
+
+            // Item Label
+            GameObject itemLabelObj = new GameObject("Item Label", typeof(RectTransform));
+            itemLabelObj.transform.SetParent(itemObj.transform, false);
+            RectTransform itemLabelRect = itemLabelObj.GetComponent<RectTransform>();
+            itemLabelRect.anchorMin = Vector2.zero;
+            itemLabelRect.anchorMax = Vector2.one;
+            itemLabelRect.offsetMin = Vector2.zero;
+            itemLabelRect.offsetMax = Vector2.zero;
+            var itemLabelText = itemLabelObj.AddComponent<TextMeshProUGUI>();
+            itemLabelText.text = "";
+            itemLabelText.fontSize = GlobalElementSettings.FontSize;
+            itemLabelText.color = GlobalElementSettings.ElementTextColor;
+            itemLabelText.alignment = TMPro.TextAlignmentOptions.Center;
+
+            dropdown.template = templateRect;
+            dropdown.captionText = labelText;
+            dropdown.itemText = itemLabelText;
+
+            dropdown.options.Clear();
+            foreach (var opt in settings.Options) dropdown.options.Add(new TMP_Dropdown.OptionData(opt));
+            dropdown.value = settings.DefaultIndex;
+
+            dropdown.onValueChanged.AddListener((i) => settings.OnValueChanged?.Invoke(dropdown));
+
+            m_panelElements[panelObj].Add(dropdown);
+
+            return true;
+        }
+        
+        private bool AddInputField(GameObject panelObj, InputFieldSettings settings)
+        {
+            if (panelObj == null)
+                return false;
+            
+            GameObject inputFieldObj = new GameObject(settings.Name, typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+            inputFieldObj.transform.SetParent(panelObj.transform, false);
+            RectTransform inputFieldRect = inputFieldObj.GetComponent<RectTransform>();
+            if (inputFieldRect == null)
+                return false;
+            
+            UpdateElementSizes(panelObj, inputFieldRect, m_panelElements[panelObj].Count);
+            var inputField = inputFieldObj.AddComponent<TMP_InputField>();
+            if (inputField == null)
+                return false;
+            
+            // Placeholder Text
+            GameObject placeholderObj = new GameObject("Placeholder", typeof(RectTransform));
+            placeholderObj.transform.SetParent(inputFieldObj.transform, false);
+            
+            RectTransform placeholderRect = placeholderObj.GetComponent<RectTransform>();
+            placeholderRect.anchorMin = Vector2.zero;
+            placeholderRect.anchorMax = Vector2.one;
+            placeholderRect.offsetMin = Vector2.zero;
+            placeholderRect.offsetMax = Vector2.zero;
+            var placeholderText = placeholderObj.AddComponent<TextMeshProUGUI>();
+            placeholderText.text = settings.Placeholder;
+            placeholderText.fontSize = GlobalElementSettings.FontSize;
+            placeholderText.color = Color.gray;
+            placeholderText.alignment = TMPro.TextAlignmentOptions.Center;
+            inputField.placeholder = placeholderText;
+            
+            GameObject textObj = new GameObject("Text", typeof(RectTransform));
+            textObj.transform.SetParent(inputFieldObj.transform, false);
+            
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            // Input Field Text
+            var tmpText = textObj.AddComponent<TextMeshProUGUI>();
+            tmpText.text = "";
+            tmpText.fontSize = GlobalElementSettings.FontSize;
+            tmpText.color = GlobalElementSettings.ElementTextColor;
+            tmpText.alignment = TMPro.TextAlignmentOptions.Center;
+            inputField.textComponent = tmpText;
+            inputField.onValueChanged.AddListener((input) => settings.OnValueChanged?.Invoke(inputField));
+            
+            var image = inputFieldObj.GetComponent<Image>();
+            image.color = GlobalElementSettings.ElementBackgroundColor;
+
+            m_panelElements[panelObj].Add(inputField);
+            return true;
+        }
+
+        private bool AddButton(GameObject panelObj, ButtonSettings settings)
+        {
+            if (panelObj == null)
+                return false;
+
+            GameObject buttonObj = new GameObject(settings.Name, typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+            
+            buttonObj.transform.SetParent(panelObj.transform, false);
+            RectTransform buttonRect = buttonObj.GetComponent<RectTransform>();
+            if (buttonRect == null)
+                return false;
+
+            UpdateElementSizes(panelObj, buttonRect, m_panelElements[panelObj].Count);
+
+            UIButton button = buttonObj.AddComponent<UIButton>();
+            if (button == null)
+                return false;
+
+            // Button Text
+            GameObject textObj = new GameObject("Label", typeof(RectTransform));
+            textObj.transform.SetParent(buttonObj.transform, false);
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            var image = buttonObj.GetComponent<Image>();
+            image.color = GlobalElementSettings.ElementBackgroundColor;
+
+            // Button Label
+            var tmpText = textObj.AddComponent<TextMeshProUGUI>();
+            tmpText.text = settings.Label;
+            tmpText.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpText.fontSize = GlobalElementSettings.FontSize;
+            tmpText.color = GlobalElementSettings.ElementTextColor;
+
+            button.OnClicked.AddListener((btn => settings.OnClick?.Invoke(btn)));
+            button.OnMouseOver.AddListener((btn) => btn.CanvasGroup.alpha = 0.8f);
+            button.OnMouseOut.AddListener((btn) => btn.CanvasGroup.alpha = 1f);
+
+            m_panelElements[panelObj].Add(button);
+            return true;
+        }
+
+        public void Update()
+        {
+            if (!IsValid())
+                return;
+
+            foreach (var panel in from panel in m_panelElements
+                     let panelRect = panel.Key.GetComponent<RectTransform>()
+                     let panelSize = panelRect.rect.size
+                     where panelSize != m_lastPanelSize
+                     select panel)
+                for (var index = 0; index < panel.Value.Count; index++)
+                    UpdateElementSizes(panel.Key, panel.Value[index].GetComponent<RectTransform>(), index);
+        }
+
+        private void PauseTas(UIButton button)
+        {
+            TasServices.Log.Log($"[{Name}]: PauseTas called: {button.name}");
+            
+            System.Threading.Thread.Sleep(2000);
+        }
+
         public bool Initialize()
         {
-            if (!ServicesTas.TasReflection.GetFieldValue(Services.Pop, "m_consolePopup",
-                    out AssetReference<PopupData> existingConsolePopupData))
+            var settings = new PanelSettings
             {
-                ServicesTas.Log.Log($"[{Name}]: Failed to get existing ConsolePopupData reference");
+                StartingPosition = new Vector2(50, -50),
+                StartingSize = new Vector2(600, 400),
+                BackgroundColor = new Color(0f, 0f, 0f, 0.85f),
+                MinSize = new Vector2(200, 100),
+                TitleBarColor = new Color(0.1f, 0.1f, 0.1f, 1f),
+                TitleTextColor = Color.white,
+                TitleHeight = 30
+            };
+            
+            if (!CreateCanvas("MainPanel", settings, out var panelMain))
+            {
+                TasServices.Log.Log($"[{Name}]: Failed to create TAS Popup Canvas");
                 return false;
             }
 
-            if (!ServicesTas.TasReflection.DeepCopyAssetReference(existingConsolePopupData, out var copiedConsolePopupData))
+            var pauseSettings = settings;
+            pauseSettings.StartingPosition = new Vector2(Screen.width - pauseSettings.StartingSize.x - 50, -50);
+            if (!CreateCanvas("PausePanel", pauseSettings, out var panelPause))
             {
-                ServicesTas.Log.Log($"[{Name}]: Failed to copy ConsolePopup data");
+                TasServices.Log.Log($"[{Name}]: Failed to create TAS Popup Canvas");
                 return false;
             }
-
-            if (!copiedConsolePopupData.IsValid)
+            
+            AddButton(panelPause, new ButtonSettings
             {
-                ServicesTas.Log.Log($"[{Name}]: Copied PopupData is not valid"); 
-                return false;
-            }
-
-            m_consolePopupData = copiedConsolePopupData.Asset;
-
-            if (!ServicesTas.TasReflection.GetFieldValue(m_consolePopupData, "m_popup",
-                    out PrefabReference<Popup> copyTasPopup))
+                Name = "PauseButton",
+                Label = "Pause TAS",
+                OnClick = PauseTas
+            });
+            
+            AddInputField(panelPause, new InputFieldSettings
             {
-                ServicesTas.Log.Log($"[{Name}]: Failed to get copy of ConsolePopup");
-                return false;
-            }
+                Name = "TestInputField",
+                Placeholder = "Enter text...",
+                OnValueChanged = (inputField) =>
+                {
+                    TasServices.Log.Log($"[{Name}]: Input Field Changed: {inputField.text}");
+                }
+            });
 
-            m_consolePopup = copyTasPopup.Asset as ConsolePopup;
-            InitializeButtons();
+            for (int i = 0; i < 15; i++)
+            {
+                AddButton(panelMain, new ButtonSettings
+                {
+                    Name = "PauseButton2",
+                    Label = "Pause TAS2",
+                    OnClick = PauseTas
+                });
+            }
+            
+            AddInputField(panelMain, new InputFieldSettings
+            {
+                Name = "TestInputField",
+                Placeholder = "Enter text...",
+                OnValueChanged = (inputField) =>
+                {
+                    TasServices.Log.Log($"[{Name}]: Input Field Changed: {inputField.text}");
+                }
+            });
+
+            var options = new List<string>();
+            for (int i = 0; i < 150; i++)
+            {
+                options.Add($"Option {i + 1}");
+            }
+            AddDropdown(panelMain, new DropdownSettings
+            {
+                Name = "TestDropdown",
+                Options = options,
+                DefaultIndex = 0,
+                MaxVisibleOptions = 10,
+                OnValueChanged = (dropdown) =>
+                {
+                    TasServices.Log.Log($"[{Name}]: Dropdown Changed: {dropdown.options[dropdown.value].text}");
+                }
+            });
+            
+            m_isInitialized = true;
             return true;
         }
 
         public bool IsValid()
         {
-            return m_consolePopupData != null && m_consolePopup != null;
+            return m_isInitialized && m_panelElements.Count > 0 && m_panelElements.All(p => p.Key != null);
         }
 
-        public void Show()
+        public void Hide()
         {
-            if (Services.Players.PrimaryPlayer == null || !IsValid())
+            if (!IsValid())
                 return;
-
-            Services.Pop.ShowPopup(m_consolePopupData, new PopupParams()
-            {
-                Owner = Services.Players.PrimaryPlayer.SimEntity
-            }, out _);
-        }
-
-        private void SetButtonText(UIButton button, string newText)
-        {
-            foreach (Transform child in button.transform)
-            {
-                var textComponent = child.GetComponent<TMPro.TMP_Text>();
-                if (textComponent == null) continue;
-                textComponent.text = newText;
-                break;
-            }
-        }
-
-        private void InitializeButtons()
-        {
-            if (!ServicesTas.TasReflection.GetFieldValue(m_consolePopup, "m_moneyPleaseButton", out m_pauseButton))
-            {
-                ServicesTas.Log.Log($"[{Name}]: Failed to copy m_moneyPleaseButton data");
-                return;
-            }
-
-            if (!ServicesTas.TasReflection.GetFieldValue(m_consolePopup, "m_hpImmuneButton", out m_seedButton))
-            {
-                ServicesTas.Log.Log($"[{Name}]: Failed to copy m_hpImmuneButton data");
-                return;
-            }
-            if (!ServicesTas.TasReflection.GetFieldValue(m_consolePopup, "m_seedInput", out m_seedInput))
-            {
-                ServicesTas.Log.Log($"[{Name}]: Failed to copy m_seedInput data");
-                return;
-            }
-
-            SetButtonText(m_pauseButton, "Pause TAS");
-            SetButtonText(m_seedButton, "Set Seed TAS");
-
-            m_pauseButton.OnClicked = new UIButton.ButtonEvent();
-            m_pauseButton.OnClicked.AddListener((eventData) =>
-            {
-                ServicesTas.Log.Log("[TasPopupService]: Pause TAS button clicked");
-            });
+            
+            m_panelElements.Keys.ToList().ForEach(panel => panel.SetActive(false));
+            
+            m_isShowing = false;
         }
         
+        public bool IsShowing()
+        {
+            if (!IsValid())
+                return false;
+
+            return m_isShowing;
+        }
+        
+        public void Show()
+        {
+            if (!IsValid())
+                return;
+            
+            m_panelElements.Keys.ToList().ForEach(panel => panel.SetActive(true));
+            
+            m_isShowing = true;
+        }
+
         // IService 
         
         public void CollectDebugState(Dictionary<string, object> debugStateProperties)
@@ -136,6 +544,143 @@ namespace Lithium.Core.Thor.Core
         public IEnumerator InitializeAsync()
         {
             yield return null;
+        }
+        
+        public struct PanelSettings
+        {
+            public Vector2 StartingPosition;
+            public Vector2 StartingSize;
+            public Color BackgroundColor;
+            
+            public Color TitleBarColor;
+            public Color TitleTextColor;
+            public int TitleHeight;
+            
+            public Vector2 MinSize;
+        }
+        
+        public struct GlobalLayoutSettings
+        {
+            public Vector2 Padding;
+            public Vector2 ElementSize;
+            public Color ElementBackgroundColor;
+            public Color ElementTextColor;
+            public int MaxElementsPerRow;
+            public int FontSize;
+        }
+        private struct DropdownSettings
+        {
+            public string Name;
+            public int DefaultIndex;
+            public int MaxVisibleOptions; // Make sure it fits on screen lol
+            public List<string> Options;
+            public UnityAction<TMP_Dropdown> OnValueChanged;
+        }
+        
+        private struct InputFieldSettings
+        {
+            public string Name;
+            public string Placeholder;
+            public UnityAction<TMP_InputField> OnValueChanged;
+        }
+        
+        private struct ButtonSettings
+        {
+            public string Name;
+            public string Label;
+            public UnityAction<UIButton> OnClick;
+        }
+        
+        private class DraggableResizeHandle : MonoBehaviour, IPointerDownHandler, IDragHandler, IEndDragHandler
+        {
+            private RectTransform m_panelRect;
+            private RectTransform m_parentRect;
+            private Vector2 m_startMousePos;
+            private Vector2 m_startSize;
+            private PanelSettings _mPanelSizeSettings;
+
+            public void Init(RectTransform panelRect, PanelSettings panelSettings)
+            {
+                m_panelRect = panelRect;
+                m_parentRect = m_panelRect.parent as RectTransform;
+                _mPanelSizeSettings = panelSettings;
+            }
+
+            public void OnPointerDown(PointerEventData eventData)
+            {
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    m_panelRect, eventData.position, eventData.pressEventCamera, out m_startMousePos);
+                m_startSize = m_panelRect.sizeDelta;
+            }
+
+            public void OnDrag(PointerEventData eventData)
+            {
+                if (eventData.position.x > Screen.width || eventData.position.y > Screen.height ||
+                    eventData.position.x < 0 || eventData.position.y < 0)
+                    return;
+                
+                var maxHeight = m_parentRect.rect.height - m_panelRect.anchoredPosition.y - _mPanelSizeSettings.TitleHeight;
+                var maxWidth = m_parentRect.rect.width - m_panelRect.anchoredPosition.x;
+                Vector2 currentMousePos;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    m_panelRect, eventData.position, eventData.pressEventCamera, out currentMousePos);
+                Vector2 delta = currentMousePos - m_startMousePos;
+                Vector2 newSize = m_startSize + new Vector2(delta.x, -delta.y);
+                newSize.x = Mathf.Clamp(newSize.x, _mPanelSizeSettings.MinSize.x, maxWidth);
+                newSize.y = Mathf.Clamp(newSize.y, _mPanelSizeSettings.MinSize.y, maxHeight);
+                m_panelRect.sizeDelta = newSize;
+            }
+
+            public void OnEndDrag(PointerEventData eventData) { }
+        }
+        private class DraggablePanel : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+        {
+            private RectTransform m_rectTransform;
+            private RectTransform m_parentRect;
+            private PanelSettings m_panelSettings;
+            private Vector2 m_offset;
+
+            public void Init(PanelSettings panelSettings)
+            {
+                m_panelSettings = panelSettings;
+            }
+            
+            private void Awake()
+            {
+                m_rectTransform = GetComponent<RectTransform>();
+                m_parentRect = m_rectTransform.parent as RectTransform;
+            }
+
+            public void OnPointerDown(PointerEventData eventData)
+            {
+                transform.SetAsLastSibling();
+                
+                Vector2 mouseLocalPoint;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        m_parentRect, eventData.position, eventData.pressEventCamera, out mouseLocalPoint))
+                {
+                    m_offset = m_rectTransform.anchoredPosition - mouseLocalPoint;
+                }
+            }
+
+            public void OnBeginDrag(PointerEventData eventData) { }
+
+            public void OnDrag(PointerEventData eventData)
+            {
+                Vector2 mouseLocalPoint;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        m_parentRect, eventData.position, eventData.pressEventCamera, out mouseLocalPoint))
+                {
+                    var newPos = mouseLocalPoint + m_offset;
+                    Vector2 clampedPos = new Vector2(
+                        Mathf.Clamp(newPos.x, 0, m_parentRect.rect.width - m_rectTransform.rect.width),
+                        Mathf.Clamp(newPos.y, -m_parentRect.rect.height + m_rectTransform.rect.height, -m_panelSettings.TitleHeight)
+                    );
+                    m_rectTransform.anchoredPosition = clampedPos;
+                }
+            }
+
+            public void OnEndDrag(PointerEventData eventData) { }
         }
     }
 }

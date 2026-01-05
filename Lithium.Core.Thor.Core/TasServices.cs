@@ -4,12 +4,12 @@ using Thor.Core;
 
 namespace Lithium.Core.Thor.Core
 {
-    public static class ServicesTas
+    public static class TasServices
     {
         private static Dictionary<Type, ITasService> sServices = new Dictionary<Type, ITasService>();
 
         public static ITasLogService Log => GetTasService<ITasLogService>();
-        public static ITasReflectionService TasReflection => GetTasService<ITasReflectionService>();
+        public static ITasReflectionService Reflection => GetTasService<ITasReflectionService>();
         public static ITasPopupService Popup => GetTasService<ITasPopupService>();
         
         /// <summary>
@@ -83,10 +83,7 @@ namespace Lithium.Core.Thor.Core
         /// <returns> True if any services were added, false otherwise. </returns>
         public static bool GetAllTasServices(List<ITasService> services)
         {
-            foreach (ITasService value in sServices.Values)
-            {
-                services.Add(value);
-            }
+            services.AddRange(sServices.Values);
             return services.Count > 0;
         }
         

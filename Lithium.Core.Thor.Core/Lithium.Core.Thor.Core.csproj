@@ -44,9 +44,6 @@
         <Error Condition="!Exists('$(STEAMAPPS_PATH)\common\UnderMine2\')" Text="The UnderMine 2 game folder could not be found.&#xD;&#xA;Please make sure UnderMine 2 is installed.&#xD;&#xA;The expected folder is: $(STEAMAPPS_PATH)\common\UnderMine2\" />
     </Target>
     <ItemGroup>
-        <Reference Include="0Harmony, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
-          <HintPath>..\packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll</HintPath>
-        </Reference>
         <Reference Include="Lithium.Core">
           <HintPath>$(UNDERMINE2_PATH)ModToolkit\UnityPackage\Plugins\Runtime\Lithium.Core.dll</HintPath>
         </Reference>
@@ -78,18 +75,22 @@
         <Reference Include="Unity.TextMeshPro">
             <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\Unity.TextMeshPro.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.AnimationModule">
+            <HintPath>$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="ITasServices\ITasLogService.cs" />
         <Compile Include="ITasServices\ITasReflectionService.cs" />
         <Compile Include="ITasServices\ITasPopupService.cs" />
         <Compile Include="ITasServices\ITasService.cs" />
+        <Compile Include="TasServices.cs" />
         <Compile Include="TAS.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="TasService\TasLogService.cs" />
         <Compile Include="TasService\TasReflectionService.cs" />
         <Compile Include="TasService\TasPopupService.cs" />
-        <Compile Include="TasService\ServicesTas.cs" />
+        <Compile Include="TasService\TasService.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />

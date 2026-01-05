@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using HarmonyLib;
 using Thor.Core;
 using UnityEngine;
 
@@ -7,20 +6,17 @@ namespace Lithium.Core.Thor.Core
 {
     public static class TAS
     {
-        public static AssetReference<PopupData> TasPopupData;
-
         private static bool m_initialized = false;
+        private static List<ITasService> m_services = new List<ITasService>();
 
         public static void AwakeTas()
         {
-            new Harmony("com.tas").PatchAll();
-            
             Services.Events.RegisterGameEvent(GameEventType.BootComplete, (gameEvent) =>
             {
                 Debug.Log("[Tas]: Initializing TAS services...");
-                ServicesTas.AddService<ITasLogService>(new TasLogService());
-                ServicesTas.AddService<ITasReflectionService>(new TasReflectionService());
-                ServicesTas.AddService<ITasPopupService>(new TasPopupService());
+                TasServices.AddService<ITasLogService>(new TasLogService());
+                TasServices.AddService<ITasReflectionService>(new TasReflectionService());
+                TasServices.AddService<ITasPopupService>(new TasPopupService());
                 Debug.Log("[Tas]: Core TAS services initialized");
                 m_initialized = true;
             });
@@ -38,10 +34,9 @@ namespace Lithium.Core.Thor.Core
                 }
                 
                 Debug.Log("[Tas]: Starting TAS services initialization...");
-                var services = new List<ITasService>();
-                ServicesTas.GetAllTasServices(services);
+                TasServices.GetAllTasServices(m_services);
 
-                foreach (var service in services)
+                foreach (var service in m_services)
                     InitializeService(service);
             });
         }
@@ -50,10 +45,15 @@ namespace Lithium.Core.Thor.Core
         {
             if (!m_initialized)
                 return;
-            
+
+            foreach (var service in m_services) service.Update();
+
             if (Services.Input.IsKeyDown(KeyCode.F1))
             {
-                ServicesTas.Popup.Show();
+                if (TasServices.Popup.IsShowing())
+                    TasServices.Popup.Hide();
+                else
+                    TasServices.Popup.Show();
             }
         }
 

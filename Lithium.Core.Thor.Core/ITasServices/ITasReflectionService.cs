@@ -16,6 +16,15 @@ namespace Lithium.Core.Thor.Core
         bool GetFieldValue<T>(object obj, string fieldName, out T value);
         
         /// <summary>
+        /// Gets the value of a field on the given object by name.
+        /// </summary>
+        /// <param name="obj"> The object to get the field from. </param>
+        /// <param name="fieldName"> The name of the field to get. </param>
+        /// <param name="value"> The value of the field. </param>
+        /// <returns> True if the field was found and the value was retrieved, false otherwise. </returns>
+        bool GetFieldValue(object obj, string fieldName, out object value);
+        
+        /// <summary>
         /// Sets the value of a field on the given object by name.
         /// </summary>
         /// <param name="obj"> The object to set the field on. </param>

@@ -11,21 +11,25 @@ using UnityEngine;
 
 namespace Lithium.Core.Thor.Core
 {
-    public class TasReflectionService : ITasReflectionService, ITasService
+    public class TasReflectionService : TasService, ITasReflectionService
     {
         public bool Initialize()
         {
             return true;
         }
 
+        public void Update()
+        {
+        }
+
         public string Name => "ReflectionService";
         public float LoadProgress => 1f;
 
-        public bool GetFieldValue<T>(object obj, string fieldName, out T value)
+        public bool GetFieldValue(object obj, string fieldName, out object value)
         {
             if (obj == null)
             {
-                value = default;
+                value = null;
                 return false;
             }
             
@@ -35,10 +39,22 @@ namespace Lithium.Core.Thor.Core
             
             if (field != null)
             {
-                value = (T)field.GetValue(obj);
+                value = field.GetValue(obj);
                 return true;
             }
 
+            value = null;
+            return false;
+        }
+        
+        public bool GetFieldValue<T>(object obj, string fieldName, out T value)
+        {
+            if (GetFieldValue(obj, fieldName, out var fieldValue) && fieldValue is T castValue)
+            {
+                value = castValue;
+                return true;
+            }
+            
             value = default;
             return false;
         }
@@ -132,8 +148,8 @@ namespace Lithium.Core.Thor.Core
             }
             catch (Exception e)
             {
-                ServicesTas.Log.Log(
-                    $"[{ServicesTas.TasReflection.GetType().Name}]: Failed to deep copy AssetReference of type {typeof(T).Name}. Exception: {e}");
+                TasServices.Log.Log(
+                    $"[{TasServices.Reflection.GetType().Name}]: Failed to deep copy AssetReference of type {typeof(T).Name}. Exception: {e}");
                 return false;
             }
             
@@ -179,16 +195,16 @@ namespace Lithium.Core.Thor.Core
             {
                 var valueType = value as IAssetReference;
                 // Assuming IAssetReference has string guid and int guidHash properties
-                if (!ServicesTas.TasReflection.GetFieldValue<string>(valueType, "guid", out var guidProperty))
+                if (!TasServices.Reflection.GetFieldValue<string>(valueType, "guid", out var guidProperty))
                 {
                     throw new InvalidOperationException(
-                        $"[{ServicesTas.TasReflection.GetType().Name}]: Failed to get 'guid' field value for JSON serialization.");
+                        $"[{TasServices.Reflection.GetType().Name}]: Failed to get 'guid' field value for JSON serialization.");
                 }
 
-                if (!ServicesTas.TasReflection.GetFieldValue<int>(valueType, "guidHash", out var guidHashProperty))
+                if (!TasServices.Reflection.GetFieldValue<int>(valueType, "guidHash", out var guidHashProperty))
                 {
                     throw new InvalidOperationException(
-                        $"[{ServicesTas.TasReflection.GetType().Name}]: Failed to get 'guidHash' field value for JSON serialization.");
+                        $"[{TasServices.Reflection.GetType().Name}]: Failed to get 'guidHash' field value for JSON serialization.");
                 }
 
                 writer.WriteStartObject();

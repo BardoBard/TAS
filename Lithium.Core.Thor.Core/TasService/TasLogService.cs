@@ -12,7 +12,7 @@ namespace Lithium.Core.Thor.Core
     /// <summary>
     /// For now this is only used for log but can be extended for other purposes later by adding dynamic Open/Close methods.
     /// </summary>
-    public class TasLogService : ITasLogService, ITasService
+    public class TasLogService : TasService, ITasLogService
     {
         private bool m_isLogging = true;
         private int m_logCount = 0;
@@ -31,6 +31,10 @@ namespace Lithium.Core.Thor.Core
             ClearLog();
             Log("--- Tas Log Service Initialized ---");
             return true;
+        }
+
+        public void Update()
+        {
         }
 
         public void Shutdown()

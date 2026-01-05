@@ -563,11 +563,7 @@ A restart is probably required" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
   <PropertyGroup>
     <PostBuildEvent>
-      del "$(TargetDir)Lithium.Core.Thor.Core.pdb"
-      del "$(TargetDir)0Harmony.pdb"
       del "$(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\Mod_0DeleteMe.dll"
-      dotnet tool install -g dotnet-ilrepack --version 2.0.44
-      ilrepack --out:"$(TargetDir)Lithium.Core.Thor.Core.dll" --internalize --target:library "$(TargetDir)Lithium.Core.Thor.Core.dll" "$(TargetDir)0Harmony.dll"
       xcopy "$(TargetDir)Lithium.Core.Thor.Core.dll" "$(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\" /Y
       xcopy "$(TargetDir)Mod_1cc0850504174e90b99c12c59de2b40f.dll" "$(STEAMAPPS_PATH)\workshop\content\1869780\3634683501\" /Y
       xcopy "$(TargetDir)Lithium.Core.Thor.Core.dll" "$(STEAMAPPS_PATH)\common\UnderMine2\UnderMine2_Data\Managed\" /Y
