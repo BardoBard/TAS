@@ -10,6 +10,13 @@ namespace Lithium.Core.Thor.Core
         /// </summary>
         string PathToLogFile { get; }
 
+        /// <summary>
+        /// Whenever a log writes occurs, the provided action will be called with the log message.
+        /// </summary>
+        /// <param name="onLogEvent">The action to call on log writes.</param>
+        /// <returns>True if registration was successful, false otherwise.</returns>
+        void RegisterOnLogEvent(Action<string> onLogEvent);
+        
         void Log<T>(IEnumerable<T> t);
         void Log<T>(List<T> t);
         void Log<T>(T t) where T : IComparable;

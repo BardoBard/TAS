@@ -18,18 +18,15 @@ namespace Lithium.Core.Thor.Core
         private int m_logCount = 0;
         private StreamWriter m_logFileWriter = null;
         private Action<string> m_outputMethod = null;
-
+        private List<Action<string>> m_registeredLogEvents = new List<Action<string>>();
         public string PathToLogFile { get; private set; } = string.Empty;
-
         public string Name => "LogService";
-        public static string TasDirectory => "Tas";
         public float LoadProgress => 1f;
 
         public bool Initialize()
         {
-            OpenLogFile(Path.Combine(Path.Combine(Application.persistentDataPath, Services.Platform.LoggedInUserID), Path.Combine(TasDirectory, "TasLog.txt")));
+            OpenLogFile(Path.Combine(TasServices.File.PathToTasDir, "TasLog.txt"));
             ClearLog();
-            Log("--- Tas Log Service Initialized ---");
             return true;
         }
 
@@ -70,6 +67,8 @@ namespace Lithium.Core.Thor.Core
             m_outputMethod = null;
         }
 
+        public void RegisterOnLogEvent(Action<string> onLogEvent) => m_outputMethod += onLogEvent;
+
         public void Log<T>(IEnumerable<T> t)
         {
             foreach (var num in t)
@@ -98,6 +97,8 @@ namespace Lithium.Core.Thor.Core
                 return;
             string message = string.Format(str ?? string.Empty, args);
             m_outputMethod.Invoke(message);
+            
+            foreach (var logEvent in m_registeredLogEvents) logEvent?.Invoke(message);
         }
 
         public void Log(string str, string str2)
@@ -106,6 +107,8 @@ namespace Lithium.Core.Thor.Core
                 return;
             string message = str + "\n\t" + str2;
             m_outputMethod.Invoke(message);
+            
+            foreach (var logEvent in m_registeredLogEvents) logEvent?.Invoke(message);
         }
 
         public void LogStackTrace()

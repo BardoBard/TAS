@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using Thor.Core;
 using TMPro;
@@ -26,11 +28,11 @@ namespace Lithium.Core.Thor.Core
         public GlobalLayoutSettings GlobalElementSettings {get; private set;} = new GlobalLayoutSettings
         {
             Padding = new Vector2(10, 10),
-            ElementSize = new Vector2(150, 40),
+            ElementSize = new Vector2(250, 50),
             ElementBackgroundColor = Color.white,
             ElementTextColor = Color.black,
             MaxElementsPerRow = 99,
-            FontSize = 24
+            MaxFontSize = 24
         };
 
         private void AddTitleBar(GameObject panelObj, string panelName, PanelSettings settings)
@@ -59,12 +61,12 @@ namespace Lithium.Core.Thor.Core
 
             var titleText = titleTextObj.AddComponent<TextMeshProUGUI>();
             titleText.text = panelName;
-            titleText.fontSize = GlobalElementSettings.FontSize + 4;
+            titleText.fontSize = GlobalElementSettings.MaxFontSize + 4;
             titleText.color = settings.TitleTextColor;
             titleText.alignment = TMPro.TextAlignmentOptions.Center;
         }
 
-        private bool CreateCanvas(string canvasName, PanelSettings settings, out GameObject panelObj)
+        private bool CreateCanvas(PanelSettings settings, out GameObject panelObj)
         {
             panelObj = null;
             Canvas mainCanvas = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None)
@@ -76,7 +78,7 @@ namespace Lithium.Core.Thor.Core
                 return false;
             }
 
-            panelObj = new GameObject(canvasName, typeof(RectTransform), typeof(CanvasGroup));
+            panelObj = new GameObject(settings.Name, typeof(RectTransform), typeof(CanvasGroup));
             if (panelObj == null)
                 return false;
 
@@ -103,7 +105,7 @@ namespace Lithium.Core.Thor.Core
             resizeHandle.Init(panelObj.GetComponent<RectTransform>(), settings);
             
             // Title Bar
-            AddTitleBar(panelObj, canvasName, settings);
+            AddTitleBar(panelObj, settings.Name, settings);
             
             // Panel Background
             var image = panelObj.AddComponent<Image>();
@@ -131,8 +133,8 @@ namespace Lithium.Core.Thor.Core
 
         private void UpdateElementSizes(GameObject panelObj, RectTransform elementRect, int index)
         {
-            int elementsPerRow = Mathf.Min(GlobalElementSettings.MaxElementsPerRow,
-                (int)(panelObj.GetComponent<RectTransform>().rect.width / (int)(GlobalElementSettings.ElementSize.x + GlobalElementSettings.Padding.x)));
+            int elementsPerRow = Mathf.Max(1, Mathf.Min(GlobalElementSettings.MaxElementsPerRow,
+                (int)(panelObj.GetComponent<RectTransform>().rect.width / (int)(GlobalElementSettings.ElementSize.x + GlobalElementSettings.Padding.x))));
             int currentElementCount = index;
             float mNextElementX = GlobalElementSettings.Padding.x + (currentElementCount % elementsPerRow) * (GlobalElementSettings.ElementSize.x + GlobalElementSettings.Padding.x);
             float mNextElementY = -GlobalElementSettings.Padding.y - (int)(currentElementCount / elementsPerRow) * (GlobalElementSettings.ElementSize.y + GlobalElementSettings.Padding.y);
@@ -144,6 +146,41 @@ namespace Lithium.Core.Thor.Core
             elementRect.anchoredPosition = new Vector2(mNextElementX, mNextElementY);
         }
 
+        private bool AddTextElement(GameObject panelObj, TextElementSettings settings)
+        {
+            if (panelObj == null)
+                return false;
+
+            GameObject textObj = new GameObject(settings.Name, typeof(RectTransform));
+            textObj.transform.SetParent(panelObj.transform, false);
+
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            if (textRect == null)
+                return false;
+            
+            textRect.anchorMin = new Vector2(0, 1);
+            textRect.anchorMax = new Vector2(0, 1);
+            textRect.pivot = new Vector2(0, 1);
+            textRect.anchoredPosition = Vector2.zero;
+            textRect.sizeDelta = Vector2.zero;
+
+            UpdateElementSizes(panelObj, textRect, m_panelElements[panelObj].Count);
+
+            var tmpText = textObj.AddComponent<TextMeshProUGUI>();
+            tmpText.text = settings.Text;
+            tmpText.fontSize = settings.FontSize > 0 ? settings.FontSize : GlobalElementSettings.MaxFontSize;
+            tmpText.color = settings.TextColor != default ? settings.TextColor : GlobalElementSettings.ElementTextColor;
+            tmpText.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            tmpText.overflowMode = TMPro.TextOverflowModes.Overflow;
+            tmpText.enableAutoSizing = true;
+            tmpText.fontSizeMin = 10;
+            tmpText.fontSizeMax = settings.FontSize > 0 ? settings.FontSize : GlobalElementSettings.MaxFontSize;
+            tmpText.name = settings.Name;
+            m_panelElements[panelObj].Add(tmpText);
+            return true;
+        }
+                
         private bool AddDropdown(GameObject panelObj, DropdownSettings settings)
         {
             if (panelObj == null)
@@ -172,9 +209,14 @@ namespace Lithium.Core.Thor.Core
             labelRect.offsetMax = Vector2.zero;
             var labelText = labelObj.AddComponent<TextMeshProUGUI>();
             labelText.text = settings.Options.Count > 0 ? settings.Options[0] : "";
-            labelText.fontSize = GlobalElementSettings.FontSize;
+            labelText.fontSize = GlobalElementSettings.MaxFontSize;
             labelText.color = GlobalElementSettings.ElementTextColor;
             labelText.alignment = TMPro.TextAlignmentOptions.Center;
+            labelText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            labelText.overflowMode = TMPro.TextOverflowModes.Overflow;
+            labelText.enableAutoSizing = true;
+            labelText.fontSizeMin = 10;
+            labelText.fontSizeMax = GlobalElementSettings.MaxFontSize;
             dropdown.captionText = labelText;
 
             // Template
@@ -272,9 +314,14 @@ namespace Lithium.Core.Thor.Core
             itemLabelRect.offsetMax = Vector2.zero;
             var itemLabelText = itemLabelObj.AddComponent<TextMeshProUGUI>();
             itemLabelText.text = "";
-            itemLabelText.fontSize = GlobalElementSettings.FontSize;
+            itemLabelText.fontSize = GlobalElementSettings.MaxFontSize;
             itemLabelText.color = GlobalElementSettings.ElementTextColor;
             itemLabelText.alignment = TMPro.TextAlignmentOptions.Center;
+            itemLabelText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            itemLabelText.overflowMode = TMPro.TextOverflowModes.Overflow;
+            itemLabelText.enableAutoSizing = true;
+            itemLabelText.fontSizeMin = 10;
+            itemLabelText.fontSizeMax = GlobalElementSettings.MaxFontSize;
 
             dropdown.template = templateRect;
             dropdown.captionText = labelText;
@@ -318,9 +365,14 @@ namespace Lithium.Core.Thor.Core
             placeholderRect.offsetMax = Vector2.zero;
             var placeholderText = placeholderObj.AddComponent<TextMeshProUGUI>();
             placeholderText.text = settings.Placeholder;
-            placeholderText.fontSize = GlobalElementSettings.FontSize;
+            placeholderText.fontSize = GlobalElementSettings.MaxFontSize;
             placeholderText.color = Color.gray;
             placeholderText.alignment = TMPro.TextAlignmentOptions.Center;
+            placeholderText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            placeholderText.overflowMode = TMPro.TextOverflowModes.Overflow;
+            placeholderText.enableAutoSizing = true;
+            placeholderText.fontSizeMin = 10;
+            placeholderText.fontSizeMax = GlobalElementSettings.MaxFontSize;
             inputField.placeholder = placeholderText;
             
             GameObject textObj = new GameObject("Text", typeof(RectTransform));
@@ -335,9 +387,15 @@ namespace Lithium.Core.Thor.Core
             // Input Field Text
             var tmpText = textObj.AddComponent<TextMeshProUGUI>();
             tmpText.text = "";
-            tmpText.fontSize = GlobalElementSettings.FontSize;
+            tmpText.fontSize = GlobalElementSettings.MaxFontSize;
             tmpText.color = GlobalElementSettings.ElementTextColor;
             tmpText.alignment = TMPro.TextAlignmentOptions.Center;
+            tmpText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            tmpText.overflowMode = TMPro.TextOverflowModes.Overflow;
+            tmpText.enableAutoSizing = true;
+            tmpText.fontSizeMin = 10;
+            tmpText.fontSizeMax = GlobalElementSettings.MaxFontSize;
+            
             inputField.textComponent = tmpText;
             inputField.onValueChanged.AddListener((input) => settings.OnValueChanged?.Invoke(inputField));
             
@@ -381,8 +439,13 @@ namespace Lithium.Core.Thor.Core
             var tmpText = textObj.AddComponent<TextMeshProUGUI>();
             tmpText.text = settings.Label;
             tmpText.alignment = TMPro.TextAlignmentOptions.Center;
-            tmpText.fontSize = GlobalElementSettings.FontSize;
+            tmpText.fontSize = GlobalElementSettings.MaxFontSize;
             tmpText.color = GlobalElementSettings.ElementTextColor;
+            tmpText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            tmpText.overflowMode = TMPro.TextOverflowModes.Overflow;
+            tmpText.enableAutoSizing = true;
+            tmpText.fontSizeMin = 10; 
+            tmpText.fontSizeMax = GlobalElementSettings.MaxFontSize;
 
             button.OnClicked.AddListener((btn => settings.OnClick?.Invoke(btn)));
             button.OnMouseOver.AddListener((btn) => btn.CanvasGroup.alpha = 0.8f);
@@ -397,26 +460,70 @@ namespace Lithium.Core.Thor.Core
             if (!IsValid())
                 return;
 
-            foreach (var panel in from panel in m_panelElements
-                     let panelRect = panel.Key.GetComponent<RectTransform>()
-                     let panelSize = panelRect.rect.size
-                     where panelSize != m_lastPanelSize
-                     select panel)
+            foreach (var panel in m_panelElements)
+            {
+                if (m_lastPanelSize == panel.Key.GetComponent<RectTransform>().rect.size)
+                    continue;
+                
                 for (var index = 0; index < panel.Value.Count; index++)
                     UpdateElementSizes(panel.Key, panel.Value[index].GetComponent<RectTransform>(), index);
+
+                // Make sure the panels are in front of other UI
+                m_lastPanelSize = panel.Key.GetComponent<RectTransform>().rect.size;
+            }
+            
+            // Log the current random state of the game to the log panel
+            foreach (var panel in m_panelElements)
+            {
+                if (panel.Key.name != "Log Panel")
+                    continue;
+
+                var logText = panel.Value.OfType<TextMeshProUGUI>().FirstOrDefault(t => t.gameObject.name == "LogInfoText");
+                var keyLogText = panel.Value.OfType<TextMeshProUGUI>().FirstOrDefault(t => t.gameObject.name == "LogKeys");
+                if (logText == null || keyLogText == null)
+                    continue;
+                
+                // Copy the state to avoid modifying the actual game state
+                UnityEngine.Random.State originalState = UnityEngine.Random.state;
+                logText.text = Random.value.ToString(CultureInfo.CurrentCulture);
+                UnityEngine.Random.state = originalState;
+                
+                TasController tasController = TasServices.TasController as TasController;
+                if (tasController?.m_inputThisFrame == null) continue;
+                keyLogText.text = (tasController?.m_inputThisFrame).Distinct().Aggregate("", (current, key) => current + (key + " "));
+            }
         }
 
-        private void PauseTas(UIButton button)
+        private void StartTas(UIButton button)
         {
-            TasServices.Log.Log($"[{Name}]: PauseTas called: {button.name}");
+            if (!IsValid())
+                return;
             
-            System.Threading.Thread.Sleep(2000);
+            // Get the save number from the input field
+            var inputField = m_panelElements[button.transform.parent.gameObject]
+                .OfType<TMP_InputField>()
+                .FirstOrDefault(f => f.gameObject.name == "SaveNumberInput");
+            if (inputField == null)
+            {
+                TasServices.Log.Log("Could not find SaveNumberInput field.");
+                return;
+            }
+            
+            if (!int.TryParse(inputField.text, out int saveNumber))
+            {
+                TasServices.Log.Log("Invalid save number entered.");
+                return;
+            }
+
+            TasServices.Log.Log("Starting TAS...");
+            TasServices.TasController.StartTas(saveNumber - 1);
         }
 
         public bool Initialize()
         {
             var settings = new PanelSettings
             {
+                Name = "Main Panel",
                 StartingPosition = new Vector2(50, -50),
                 StartingSize = new Vector2(600, 400),
                 BackgroundColor = new Color(0f, 0f, 0f, 0.85f),
@@ -426,74 +533,113 @@ namespace Lithium.Core.Thor.Core
                 TitleHeight = 30
             };
             
-            if (!CreateCanvas("MainPanel", settings, out var panelMain))
+            if (!CreateCanvas(settings, out var mainPanel))
             {
-                TasServices.Log.Log($"[{Name}]: Failed to create TAS Popup Canvas");
+                TasServices.Log.Log($"[{Name}]: Failed to create TAS Main Canvas");
                 return false;
             }
 
-            var pauseSettings = settings;
-            pauseSettings.StartingPosition = new Vector2(Screen.width - pauseSettings.StartingSize.x - 50, -50);
-            if (!CreateCanvas("PausePanel", pauseSettings, out var panelPause))
+            var logSettings = settings;
+            logSettings.Name = "Log Panel";
+            logSettings.StartingPosition = new Vector2(Screen.width - settings.StartingSize.x - 50, -50);
+            if (!CreateCanvas(logSettings, out var logPanel))
             {
-                TasServices.Log.Log($"[{Name}]: Failed to create TAS Popup Canvas");
+                TasServices.Log.Log($"[{Name}]: Failed to create TAS Log Canvas");
                 return false;
             }
             
-            AddButton(panelPause, new ButtonSettings
+            var tasSettings = settings;
+            tasSettings.Name = "Tas Control Panel";
+            tasSettings.StartingPosition = new Vector2(50, -settings.StartingSize.y - settings.StartingPosition.y - 70);
+            if (!CreateCanvas(tasSettings, out var tasPanel))
             {
-                Name = "PauseButton",
-                Label = "Pause TAS",
-                OnClick = PauseTas
-            });
-            
-            AddInputField(panelPause, new InputFieldSettings
-            {
-                Name = "TestInputField",
-                Placeholder = "Enter text...",
-                OnValueChanged = (inputField) =>
-                {
-                    TasServices.Log.Log($"[{Name}]: Input Field Changed: {inputField.text}");
-                }
-            });
-
-            for (int i = 0; i < 15; i++)
-            {
-                AddButton(panelMain, new ButtonSettings
-                {
-                    Name = "PauseButton2",
-                    Label = "Pause TAS2",
-                    OnClick = PauseTas
-                });
+                TasServices.Log.Log($"[{Name}]: Failed to create Tas Canvas");
+                return false;
             }
             
-            AddInputField(panelMain, new InputFieldSettings
+            AddInputField(mainPanel, new InputFieldSettings
             {
-                Name = "TestInputField",
-                Placeholder = "Enter text...",
-                OnValueChanged = (inputField) =>
-                {
-                    TasServices.Log.Log($"[{Name}]: Input Field Changed: {inputField.text}");
-                }
+                Name = "SaveNumberInput",
+                Placeholder = "Enter Save Number...",
+                OnValueChanged = null
             });
-
-            var options = new List<string>();
-            for (int i = 0; i < 150; i++)
+            
+            AddButton(mainPanel, new ButtonSettings
             {
-                options.Add($"Option {i + 1}");
-            }
-            AddDropdown(panelMain, new DropdownSettings
+                Name = "StartButton",
+                Label = "Start TAS",
+                OnClick = StartTas
+            });
+            
+            AddButton(mainPanel, new ButtonSettings
             {
-                Name = "TestDropdown",
-                Options = options,
+                Name = "StopTas",
+                Label = "Stop TAS",
+                OnClick = (btn => TasServices.TasController.StopTas())
+            });
+            
+            AddButton(tasPanel, new ButtonSettings
+            {
+                Name = "PlayAtNormalSpeedButton",
+                Label = "Play at Normal Speed",
+                OnClick = (btn => TasServices.TasController.PlayAtNormalSpeed())
+            });
+            
+            AddButton(tasPanel, new ButtonSettings
+            {
+                Name = "PlayAtFrameSpeedButton",
+                Label = "Play at Frame Speed",
+                OnClick = (btn => TasServices.TasController.PlayAtFrameSpeed())
+            });
+            
+            AddDropdown(tasPanel, new DropdownSettings
+            {
+                Name = "ChoosePlaybackFile",
+                MaxVisibleOptions = 5,
+                Options = TasServices.File
+                    .GetFilesInDirectory(Path.Combine(TasServices.File.PathToTasDir, "Runs"), "*.tas", true)
+                    .Select(f => TasServices.File.GetDirectoryName(f, out var dirName) ? dirName.Split(Path.DirectorySeparatorChar).Last() : "")
+                    .Where(d => !string.IsNullOrEmpty(d)).Reverse().ToList(),
                 DefaultIndex = 0,
-                MaxVisibleOptions = 10,
-                OnValueChanged = (dropdown) =>
+            });
+
+            AddButton(tasPanel, new ButtonSettings
+            {
+                Name = "Playback",
+                Label = "Playback",
+                OnClick = (btn =>
                 {
-                    TasServices.Log.Log($"[{Name}]: Dropdown Changed: {dropdown.options[dropdown.value].text}");
-                }
+                    var dropdown = m_panelElements[btn.transform.parent.gameObject]
+                        .OfType<TMP_Dropdown>()
+                        .FirstOrDefault(d => d.gameObject.name == "ChoosePlaybackFile");
+                    if (dropdown == null)
+                    {
+                        TasServices.Log.Log("Could not find ChoosePlaybackFile dropdown.");
+                        return;
+                    }
+
+                    var selectedFile = dropdown.options[dropdown.value].text;
+                    var playbackFilePath = Path.Combine(TasServices.File.PathToTasDir, "Runs", selectedFile);
+                    TasServices.TasController.Playback(playbackFilePath);
+                })
             });
             
+            AddTextElement(logPanel, new TextElementSettings
+            {
+                Name = "LogInfoText",
+                Text = "TAS Initialized. Enter a save number and click Start TAS.",
+                FontSize = GlobalElementSettings.MaxFontSize,
+                TextColor = Color.white
+            });
+            
+            AddTextElement(logPanel, new TextElementSettings
+            {
+                Name = "LogKeys",
+                Text = "",
+                FontSize = GlobalElementSettings.MaxFontSize,
+                TextColor = Color.white
+            });
+
             m_isInitialized = true;
             return true;
         }
@@ -548,6 +694,7 @@ namespace Lithium.Core.Thor.Core
         
         public struct PanelSettings
         {
+            public string Name;
             public Vector2 StartingPosition;
             public Vector2 StartingSize;
             public Color BackgroundColor;
@@ -566,7 +713,14 @@ namespace Lithium.Core.Thor.Core
             public Color ElementBackgroundColor;
             public Color ElementTextColor;
             public int MaxElementsPerRow;
+            public int MaxFontSize;
+        }
+        private struct TextElementSettings
+        {
+            public string Name;
+            public string Text;
             public int FontSize;
+            public Color TextColor;
         }
         private struct DropdownSettings
         {

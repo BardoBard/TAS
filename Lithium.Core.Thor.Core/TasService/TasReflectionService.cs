@@ -34,6 +34,11 @@ namespace Lithium.Core.Thor.Core
             }
             
             var type = obj.GetType();
+            if (obj is Type objType)
+            {
+                type = objType;
+                obj = null;
+            }
             var field = type.GetField(fieldName,
                 BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static);
             
@@ -66,7 +71,7 @@ namespace Lithium.Core.Thor.Core
             
             var type = obj.GetType();
             var field = type.GetField(fieldName,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             if (field != null)
             {
                 field.SetValue(obj, value);
@@ -83,27 +88,22 @@ namespace Lithium.Core.Thor.Core
                 functionDelegate = null;
                 return false;
             }
-            
-            var type = obj.GetType();
+
+            Type type;
+            if (obj is Type objType)
+            {
+                type = objType;
+                obj = null;
+            }
+            else
+                type = obj.GetType();
+
             var method = type.GetMethod(functionName,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.Public | BindingFlags.Static);
             if (method != null)
             {
                 functionDelegate = (T)Delegate.CreateDelegate(typeof(T), obj, method);
-                return true;
-            }
-
-            functionDelegate = null;
-            return false;
-        }
-
-        public bool GetFunctionDelegate<T>(Type type, string functionName, out T functionDelegate) where T : Delegate
-        {
-            var method = type.GetMethod(functionName,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            if (method != null)
-            {
-                functionDelegate = (T)Delegate.CreateDelegate(typeof(T), method);
                 return true;
             }
 
@@ -118,13 +118,13 @@ namespace Lithium.Core.Thor.Core
             
             var sourceType = source.GetType();
             var sourceField = sourceType.GetField(fieldName,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             if (sourceField == null)
                 return false;
 
             var destinationType = destination.GetType();
             var destinationField = destinationType.GetField(destinationFieldName,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             if (destinationField == null)
                 return false;
 

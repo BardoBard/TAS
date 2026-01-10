@@ -1,8 +1,6 @@
-﻿using Thor;
-
-namespace Lithium.Core.Thor.Core
+﻿namespace Lithium.Core.Thor.Core
 {
-    public class TasService : Service
+    public class TasService
     {
     }
 }

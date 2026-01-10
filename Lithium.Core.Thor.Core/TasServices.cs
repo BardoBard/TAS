@@ -8,8 +8,10 @@ namespace Lithium.Core.Thor.Core
     {
         private static Dictionary<Type, ITasService> sServices = new Dictionary<Type, ITasService>();
 
+        public static ITasFileService File => GetTasService<ITasFileService>();
         public static ITasLogService Log => GetTasService<ITasLogService>();
         public static ITasReflectionService Reflection => GetTasService<ITasReflectionService>();
+        public static ITasController TasController => GetTasService<ITasController>();
         public static ITasPopupService Popup => GetTasService<ITasPopupService>();
         
         /// <summary>
