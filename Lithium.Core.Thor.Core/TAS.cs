@@ -14,8 +14,10 @@ namespace Lithium.Core.Thor.Core
             Services.Events.RegisterGameEvent(GameEventType.BootComplete, (gameEvent) =>
             {
                 Debug.Log("[Tas]: Initializing TAS services...");
+                TasServices.AddService<ITasFileService>(new TasFileService());
                 TasServices.AddService<ITasLogService>(new TasLogService());
                 TasServices.AddService<ITasReflectionService>(new TasReflectionService());
+                TasServices.AddService<ITasController>(new TasController());
                 TasServices.AddService<ITasPopupService>(new TasPopupService());
                 Debug.Log("[Tas]: Core TAS services initialized");
                 m_initialized = true;

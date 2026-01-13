@@ -35,7 +35,7 @@ namespace Lithium.Core.Thor.Core
             MaxFontSize = 24
         };
 
-        private void AddTitleBar(GameObject panelObj, string panelName, PanelSettings settings)
+        private void AddTitleBar(GameObject panelObj, PanelSettings settings)
         {
             GameObject titleBarObj = new GameObject("TitleBar", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
             titleBarObj.transform.SetParent(panelObj.transform, false);
@@ -60,7 +60,7 @@ namespace Lithium.Core.Thor.Core
             titleTextRect.offsetMax = Vector2.zero;
 
             var titleText = titleTextObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = panelName;
+            titleText.text = settings.Name;
             titleText.fontSize = GlobalElementSettings.MaxFontSize + 4;
             titleText.color = settings.TitleTextColor;
             titleText.alignment = TMPro.TextAlignmentOptions.Center;
@@ -105,7 +105,7 @@ namespace Lithium.Core.Thor.Core
             resizeHandle.Init(panelObj.GetComponent<RectTransform>(), settings);
             
             // Title Bar
-            AddTitleBar(panelObj, settings.Name, settings);
+            AddTitleBar(panelObj, settings);
             
             // Panel Background
             var image = panelObj.AddComponent<Image>();
@@ -479,18 +479,13 @@ namespace Lithium.Core.Thor.Core
                     continue;
 
                 var logText = panel.Value.OfType<TextMeshProUGUI>().FirstOrDefault(t => t.gameObject.name == "LogInfoText");
-                var keyLogText = panel.Value.OfType<TextMeshProUGUI>().FirstOrDefault(t => t.gameObject.name == "LogKeys");
-                if (logText == null || keyLogText == null)
+                if (logText == null)
                     continue;
                 
                 // Copy the state to avoid modifying the actual game state
-                UnityEngine.Random.State originalState = UnityEngine.Random.state;
+                Random.State originalState = Random.state;
                 logText.text = Random.value.ToString(CultureInfo.CurrentCulture);
-                UnityEngine.Random.state = originalState;
-                
-                TasController tasController = TasServices.TasController as TasController;
-                if (tasController?.m_inputThisFrame == null) continue;
-                keyLogText.text = (tasController?.m_inputThisFrame).Distinct().Aggregate("", (current, key) => current + (key + " "));
+                Random.state = originalState;
             }
         }
 
@@ -632,22 +627,11 @@ namespace Lithium.Core.Thor.Core
                 TextColor = Color.white
             });
             
-            AddTextElement(logPanel, new TextElementSettings
-            {
-                Name = "LogKeys",
-                Text = "",
-                FontSize = GlobalElementSettings.MaxFontSize,
-                TextColor = Color.white
-            });
-
             m_isInitialized = true;
             return true;
         }
 
-        public bool IsValid()
-        {
-            return m_isInitialized && m_panelElements.Count > 0 && m_panelElements.All(p => p.Key != null);
-        }
+        public bool IsValid() => m_isInitialized && m_panelElements.Count > 0 && m_panelElements.All(p => p.Key != null);
 
         public void Hide()
         {
@@ -659,14 +643,8 @@ namespace Lithium.Core.Thor.Core
             m_isShowing = false;
         }
         
-        public bool IsShowing()
-        {
-            if (!IsValid())
-                return false;
+        public bool IsShowing() => IsValid() && m_isShowing;
 
-            return m_isShowing;
-        }
-        
         public void Show()
         {
             if (!IsValid())
@@ -751,13 +729,13 @@ namespace Lithium.Core.Thor.Core
             private RectTransform m_parentRect;
             private Vector2 m_startMousePos;
             private Vector2 m_startSize;
-            private PanelSettings _mPanelSizeSettings;
+            private PanelSettings m_panelSizeSettings;
 
             public void Init(RectTransform panelRect, PanelSettings panelSettings)
             {
                 m_panelRect = panelRect;
                 m_parentRect = m_panelRect.parent as RectTransform;
-                _mPanelSizeSettings = panelSettings;
+                m_panelSizeSettings = panelSettings;
             }
 
             public void OnPointerDown(PointerEventData eventData)
@@ -772,16 +750,18 @@ namespace Lithium.Core.Thor.Core
                 if (eventData.position.x > Screen.width || eventData.position.y > Screen.height ||
                     eventData.position.x < 0 || eventData.position.y < 0)
                     return;
+
+                var rect = m_parentRect.rect;
+                var anchoredPosition = m_panelRect.anchoredPosition;
+                var maxHeight = rect.height - anchoredPosition.y - m_panelSizeSettings.TitleHeight;
+                var maxWidth = rect.width - anchoredPosition.x;
                 
-                var maxHeight = m_parentRect.rect.height - m_panelRect.anchoredPosition.y - _mPanelSizeSettings.TitleHeight;
-                var maxWidth = m_parentRect.rect.width - m_panelRect.anchoredPosition.x;
-                Vector2 currentMousePos;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    m_panelRect, eventData.position, eventData.pressEventCamera, out currentMousePos);
+                    m_panelRect, eventData.position, eventData.pressEventCamera, out var currentMousePos);
                 Vector2 delta = currentMousePos - m_startMousePos;
                 Vector2 newSize = m_startSize + new Vector2(delta.x, -delta.y);
-                newSize.x = Mathf.Clamp(newSize.x, _mPanelSizeSettings.MinSize.x, maxWidth);
-                newSize.y = Mathf.Clamp(newSize.y, _mPanelSizeSettings.MinSize.y, maxHeight);
+                newSize.x = Mathf.Clamp(newSize.x, m_panelSizeSettings.MinSize.x, maxWidth);
+                newSize.y = Mathf.Clamp(newSize.y, m_panelSizeSettings.MinSize.y, maxHeight);
                 m_panelRect.sizeDelta = newSize;
             }
 
@@ -794,11 +774,8 @@ namespace Lithium.Core.Thor.Core
             private PanelSettings m_panelSettings;
             private Vector2 m_offset;
 
-            public void Init(PanelSettings panelSettings)
-            {
-                m_panelSettings = panelSettings;
-            }
-            
+            public void Init(PanelSettings panelSettings) => m_panelSettings = panelSettings;
+
             private void Awake()
             {
                 m_rectTransform = GetComponent<RectTransform>();
@@ -808,30 +785,25 @@ namespace Lithium.Core.Thor.Core
             public void OnPointerDown(PointerEventData eventData)
             {
                 transform.SetAsLastSibling();
-                
-                Vector2 mouseLocalPoint;
+
                 if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        m_parentRect, eventData.position, eventData.pressEventCamera, out mouseLocalPoint))
-                {
+                        m_parentRect, eventData.position, eventData.pressEventCamera, out var mouseLocalPoint))
                     m_offset = m_rectTransform.anchoredPosition - mouseLocalPoint;
-                }
             }
 
             public void OnBeginDrag(PointerEventData eventData) { }
 
             public void OnDrag(PointerEventData eventData)
             {
-                Vector2 mouseLocalPoint;
-                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        m_parentRect, eventData.position, eventData.pressEventCamera, out mouseLocalPoint))
-                {
-                    var newPos = mouseLocalPoint + m_offset;
-                    Vector2 clampedPos = new Vector2(
-                        Mathf.Clamp(newPos.x, 0, m_parentRect.rect.width - m_rectTransform.rect.width),
-                        Mathf.Clamp(newPos.y, -m_parentRect.rect.height + m_rectTransform.rect.height, -m_panelSettings.TitleHeight)
-                    );
-                    m_rectTransform.anchoredPosition = clampedPos;
-                }
+                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        m_parentRect, eventData.position, eventData.pressEventCamera, out var mouseLocalPoint)) return;
+                
+                var newPos = mouseLocalPoint + m_offset;
+                var clampedPos = new Vector2(
+                    Mathf.Clamp(newPos.x, 0, m_parentRect.rect.width - m_rectTransform.rect.width),
+                    Mathf.Clamp(newPos.y, -m_parentRect.rect.height + m_rectTransform.rect.height, -m_panelSettings.TitleHeight)
+                );
+                m_rectTransform.anchoredPosition = clampedPos;
             }
 
             public void OnEndDrag(PointerEventData eventData) { }
