@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Lithium.Core.Thor.Core.Lithium.Core.Thor.Core;
 using Thor.Core;
 using UnityEngine;
 
@@ -40,6 +41,8 @@ namespace Lithium.Core.Thor.Core
 
                 foreach (var service in m_services)
                     InitializeService(service);
+                
+                HarmonyLoader.ApplyPatches();
             });
         }
 

@@ -577,14 +577,14 @@ namespace Lithium.Core.Thor.Core
             {
                 Name = "PlayAtNormalSpeedButton",
                 Label = "Play at Normal Speed",
-                OnClick = (btn => TasServices.TasController.PlayAtNormalSpeed())
+                OnClick = (btn => TasServices.TasController.SetPlayMode(ITasController.TasPlayMode.NormalSpeed))
             });
             
             AddButton(tasPanel, new ButtonSettings
             {
                 Name = "PlayAtFrameSpeedButton",
                 Label = "Play at Frame Speed",
-                OnClick = (btn => TasServices.TasController.PlayAtFrameSpeed())
+                OnClick = (btn => TasServices.TasController.SetPlayMode(ITasController.TasPlayMode.FrameByFrame))
             });
             
             AddDropdown(tasPanel, new DropdownSettings

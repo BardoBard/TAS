@@ -1,5 +1,4 @@
 ﻿using System;
-using Rewired;
 using Thor.Core;
 using UnityEngine;
 using AsyncOperation = Thor.Core.AsyncOperation;
@@ -33,6 +32,9 @@ namespace Lithium.Core.Thor.Core.VirtualInput
         public static bool HandleMoveAndFace(SimulationPlayer player, Button button, Vector2 mousePosition,
             out AsyncOperation operation)
         {
+            operation = AsyncOperation.sFailure;
+            if (player == null) return false;
+            
             if (button == Button.None)
             {
                 operation = AsyncOperation.sSuccess;

@@ -11,6 +11,7 @@
         <AssemblyName>Lithium.Core.Thor.Core</AssemblyName>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -44,6 +45,9 @@
         <Error Condition="!Exists('$(STEAMAPPS_PATH)\common\UnderMine2\')" Text="The UnderMine 2 game folder could not be found.&#xD;&#xA;Please make sure UnderMine 2 is installed.&#xD;&#xA;The expected folder is: $(STEAMAPPS_PATH)\common\UnderMine2\" />
     </Target>
     <ItemGroup>
+        <Reference Include="0Harmony, Version=2.4.2.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\Lib.Harmony.2.4.2\lib\net472\0Harmony.dll</HintPath>
+        </Reference>
         <Reference Include="Lithium.Core">
           <HintPath>$(UNDERMINE2_PATH)ModToolkit\UnityPackage\Plugins\Runtime\Lithium.Core.dll</HintPath>
         </Reference>
@@ -95,6 +99,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Harmony.cs" />
         <Compile Include="ITasServices\ITasController.cs" />
         <Compile Include="ITasServices\ITasFileService.cs" />
         <Compile Include="ITasServices\ITasLogService.cs" />
