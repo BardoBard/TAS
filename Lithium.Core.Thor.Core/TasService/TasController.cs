@@ -58,14 +58,11 @@ namespace Lithium.Core.Thor.Core
                 case TasMode.Playback:
                     if (m_playbackReader.EndOfStream)
                     {
-                        TasServices.Log.Log($"[{Name}]: Reached end of playback file, stopping TAS.");
                         StopTas();
                         return;
                     }
 
                     var line = m_playbackReader.ReadLine();
-                    TasServices.Log.Log($"[{Name}]: Playback line: {line}");
-                    
                     var button =
                         (from kvp in m_keyToElementIndex
                             let isPressed = line != null && line.Contains(kvp.Key.ToString())
